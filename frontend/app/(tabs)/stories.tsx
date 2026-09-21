@@ -202,10 +202,16 @@ export default function StoriesScreen() {
                     <FeatherIcon name="play-circle" size={16} color={colors.brandPrimary} />
                     <Text style={styles.actionText}>Play route</Text>
                   </Pressable>
-                  <View style={styles.actionItem}>
-                    <FeatherIcon name="award" size={16} color={colors.brandPrimary} />
-                    <Text style={styles.actionText}>Applaud</Text>
-                  </View>
+                  <Pressable
+                    style={styles.actionItem}
+                    onPress={() =>
+                      router.push({ pathname: "/route-compare/[id]", params: { id: s.id } })
+                    }
+                    testID={`story-compare-${s.id}`}
+                  >
+                    <FeatherIcon name="git-branch" size={16} color={colors.brandPrimary} />
+                    <Text style={styles.actionText}>Compare</Text>
+                  </Pressable>
                   <View style={styles.actionItem}>
                     <FeatherIcon name="share-2" size={16} color="#FFFFFF" />
                     <Text style={styles.actionText}>Share</Text>

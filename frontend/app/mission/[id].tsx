@@ -27,6 +27,7 @@ import * as Haptics from "expo-haptics";
 import { fonts, fontSize, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { SQUADS } from "@/src/data/mock";
 import { Avatar, IconButton, PrimaryButton, ProgressBar } from "@/src/components/ui";
+import { VoiceBubble, VoiceRecorderButton } from "@/src/components/voice";
 import { useAppState, ChatMessage } from "@/src/state/store";
 
 const useStyles = makeStyles((colors) => ({
@@ -375,6 +376,11 @@ export default function MissionDetailScreen() {
               Cheer
             </Text>
           </Pressable>
+          <VoiceRecorderButton
+            onSend={(uri, durationSec) =>
+              sendChat(mission.id, { kind: "voice", voiceUri: uri, voiceDurationSec: durationSec })
+            }
+          />
           <TextInput
             value={draft}
             onChangeText={setDraft}
@@ -487,6 +493,12 @@ function ChatBubble({ msg }: { msg: ChatMessage }) {
               </Text>
             ) : null}
           </View>
+        ) : msg.kind === "voice" && msg.voiceUri ? (
+          <VoiceBubble
+            uri={msg.voiceUri}
+            durationSec={msg.voiceDurationSec ?? 0}
+            mine={isMine}
+          />
         ) : (
           <View
             style={{

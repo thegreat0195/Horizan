@@ -133,7 +133,7 @@ export default function MoveScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + insets.bottom;
   const router = useRouter();
-  const { addSession, contributeKm } = useAppState();
+  const { addSession, contributeKm, recoveryScore } = useAppState();
 
   const [phase, setPhase] = useState<Phase>("select");
   const [selected, setSelected] = useState<ActivityType>("run");
@@ -211,6 +211,85 @@ export default function MoveScreen() {
           testID="move-scroll"
         >
           <ScreenHeading eyebrow="Move" title="Choose activity" subtitle="Pick how you'll go outside today." />
+
+          {/* Recovery bar — subtle. Never hides Start. */}
+          <View
+            style={{
+              marginHorizontal: spacing.lg,
+              marginTop: spacing.lg,
+              padding: spacing.lg,
+              borderRadius: radius.md,
+              backgroundColor: colors.surfaceSecondary,
+            }}
+            testID="move-recovery-bar"
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: spacing.sm,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+                <FeatherIcon name="battery-charging" size={16} color={colors.brandPrimary} />
+                <Text
+                  style={{
+                    color: colors.muted,
+                    fontFamily: fonts.textMedium,
+                    fontSize: fontSize.xs,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Recovery
+                </Text>
+              </View>
+              <Text
+                style={{
+                  color: recoveryScore >= 60 ? colors.brandPrimary : colors.warning,
+                  fontFamily: fonts.metric,
+                  fontSize: fontSize.lg,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {recoveryScore}%
+              </Text>
+            </View>
+            <View
+              style={{
+                height: 6,
+                borderRadius: 999,
+                backgroundColor: colors.surfaceTertiary,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  width: `${recoveryScore}%`,
+                  height: "100%",
+                  backgroundColor:
+                    recoveryScore >= 60 ? colors.brandPrimary : colors.warning,
+                  borderRadius: 999,
+                }}
+              />
+            </View>
+            <Text
+              style={{
+                color: colors.muted,
+                fontFamily: fonts.text,
+                fontSize: fontSize.sm,
+                marginTop: spacing.sm,
+                lineHeight: 18,
+              }}
+            >
+              {recoveryScore >= 75
+                ? "Fully rested — a long session is on the table."
+                : recoveryScore >= 45
+                  ? "Solid. A steady effort is a good call today."
+                  : "Body's asking for lighter work. Rest is a valid choice."}
+            </Text>
+          </View>
 
           <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
             <View style={{ flexDirection: "row", gap: spacing.md, marginBottom: spacing.md }}>

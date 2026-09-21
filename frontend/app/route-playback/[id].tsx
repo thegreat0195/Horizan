@@ -28,7 +28,6 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const { width: SCREEN_W } = Dimensions.get("window");
-
 function formatClock(sec: number) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
@@ -387,6 +386,34 @@ export default function RoutePlaybackScreen() {
           {story.title}
         </Text>
         <Text style={styles.metaLocation}>{story.location}</Text>
+        <Pressable
+          onPress={() =>
+            router.push({ pathname: "/route-compare/[id]", params: { id: story.id } })
+          }
+          testID="playback-compare-button"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            marginTop: spacing.md,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            borderRadius: 999,
+            backgroundColor: colors.brandTertiary,
+            alignSelf: "flex-start",
+          }}
+        >
+          <FeatherIcon name="git-branch" size={14} color={colors.brandPrimary} />
+          <Text
+            style={{
+              color: colors.brandPrimary,
+              fontFamily: fonts.textMedium,
+              fontSize: fontSize.sm,
+            }}
+          >
+            Compare with your best
+          </Text>
+        </Pressable>
       </View>
 
       <View style={styles.playRow}>

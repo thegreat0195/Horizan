@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.emergent.outdoorcommand.k1c99k",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Show your position on trail maps",
-        "NSPhotoLibraryUsageDescription": "Attach photos to your outdoor stories"
+        "NSPhotoLibraryUsageDescription": "Attach photos to your outdoor stories",
+        "NSMicrophoneUsageDescription": "Record 15-second voice notes for your squad"
       }
     },
     "android": {
@@ -24,7 +25,8 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "READ_MEDIA_IMAGES"
+        "READ_MEDIA_IMAGES",
+        "RECORD_AUDIO"
       ]
     },
     "web": {
@@ -50,11 +52,21 @@
       "expo-status-bar",
       [
         "expo-location",
-        { "locationWhenInUsePermission": "Show your position on trail maps" }
+        {
+          "locationWhenInUsePermission": "Show your position on trail maps"
+        }
       ],
       [
         "expo-image-picker",
-        { "photosPermission": "Attach photos to your outdoor stories" }
+        {
+          "photosPermission": "Attach photos to your outdoor stories"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Record 15-second voice notes for your squad"
+        }
       ]
     ],
     "experiments": {

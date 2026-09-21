@@ -166,10 +166,15 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + insets.bottom;
   const router = useRouter();
-  const { weeklyMoveDays, streakDays } = useAppState();
+  const { weeklyMoveDays, streakDays, recoveryScore } = useAppState();
   const activeDaySet = new Set(weeklyMoveDays);
   const todayIdx = (new Date().getDay() + 6) % 7;
   const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
+  const hours = new Date().getHours();
+  const greetingWindow =
+    hours < 5 ? "Late night" : hours < 12 ? "Good morning" : hours < 17 ? "Good afternoon" : "Good evening";
+  const dayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
+  const suggestedRoute = { name: "Iron Canyon Loop", distanceKm: 9.6, elevationM: 340 };
 
   return (
     <View style={styles.root}>
@@ -184,7 +189,7 @@ export default function HomeScreen() {
         {/* Header row */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.greeting}>Good morning</Text>
+            <Text style={styles.greeting}>{greetingWindow}</Text>
             <Text style={styles.name}>Alex</Text>
           </View>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
@@ -197,6 +202,175 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
+
+        {/* Daily Brief — compact morning card */}
+        <Pressable
+          onPress={() => router.push("/move")}
+          testID="home-daily-brief"
+          style={{
+            marginHorizontal: spacing.lg,
+            marginBottom: spacing.lg,
+            padding: spacing.lg,
+            borderRadius: radius.md,
+            backgroundColor: colors.surfaceSecondary,
+            gap: spacing.md,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <FeatherIcon name="sunrise" size={16} color={colors.brandPrimary} />
+              <Text
+                style={{
+                  color: colors.brandPrimary,
+                  fontFamily: fonts.textMedium,
+                  fontSize: fontSize.xs,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Daily brief · {dayName}
+              </Text>
+            </View>
+            <Text
+              style={{
+                color: colors.muted,
+                fontFamily: fonts.textMedium,
+                fontSize: fontSize.xs,
+              }}
+            >
+              {TOMORROW_WEATHER.condition} · 12°C
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.surfaceTertiary,
+                borderRadius: radius.md,
+                padding: spacing.md,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.muted,
+                  fontFamily: fonts.text,
+                  fontSize: fontSize.xs,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Streak
+              </Text>
+              <Text
+                style={{
+                  color: colors.onSurface,
+                  fontFamily: fonts.metric,
+                  fontSize: fontSize.xl,
+                  marginTop: 2,
+                  letterSpacing: -0.5,
+                }}
+              >
+                {streakDays}d
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.surfaceTertiary,
+                borderRadius: radius.md,
+                padding: spacing.md,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.muted,
+                  fontFamily: fonts.text,
+                  fontSize: fontSize.xs,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Recovery
+              </Text>
+              <Text
+                style={{
+                  color: colors.brandPrimary,
+                  fontFamily: fonts.metric,
+                  fontSize: fontSize.xl,
+                  marginTop: 2,
+                  letterSpacing: -0.5,
+                }}
+              >
+                {recoveryScore}%
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.surfaceTertiary,
+                borderRadius: radius.md,
+                padding: spacing.md,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.muted,
+                  fontFamily: fonts.text,
+                  fontSize: fontSize.xs,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Sunrise
+              </Text>
+              <Text
+                style={{
+                  color: colors.onSurface,
+                  fontFamily: fonts.metric,
+                  fontSize: fontSize.xl,
+                  marginTop: 2,
+                  letterSpacing: -0.5,
+                }}
+              >
+                {TOMORROW_WEATHER.sunrise.split(" ")[0]}
+              </Text>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              paddingTop: spacing.sm,
+              borderTopWidth: 0.5,
+              borderTopColor: colors.divider,
+            }}
+          >
+            <FeatherIcon name="compass" size={16} color={colors.brandPrimary} />
+            <Text
+              style={{
+                flex: 1,
+                color: colors.onSurface,
+                fontFamily: fonts.text,
+                fontSize: fontSize.sm,
+              }}
+            >
+              Today&apos;s pick ·{" "}
+              <Text style={{ color: colors.brandPrimary, fontFamily: fonts.textMedium }}>
+                {suggestedRoute.name} · {suggestedRoute.distanceKm} km
+              </Text>
+            </Text>
+            <FeatherIcon name="chevron-right" size={16} color={colors.muted} />
+          </View>
+        </Pressable>
 
         {/* Hero Recommendation */}
         <Pressable

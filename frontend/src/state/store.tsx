@@ -41,9 +41,11 @@ export type ChatMessage = {
   id: string;
   author: string;
   avatar?: string;
-  kind: "text" | "cheer" | "photo";
+  kind: "text" | "cheer" | "photo" | "voice";
   body?: string;
   photoUri?: string;
+  voiceUri?: string;
+  voiceDurationSec?: number;
   createdAt: string;
   mine?: boolean;
 };
@@ -194,12 +196,44 @@ type Ctx = {
 
   weeklyMoveDays: number[]; // day-of-week indices (0=Mon..6=Sun) the user moved
   streakDays: number;
+
+  recoveryScore: number; // 0..100, higher = fresher
+  getBestSession: (
+    activity: ActivityType,
+    excludeId?: string,
+  ) => CompletedSession | null;
 };
 
 const AppContext = createContext<Ctx | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [sessions, setSessions] = useState<CompletedSession[]>([]);
+  const [sessions, setSessions] = useState<CompletedSession[]>(() => {
+    // Seed a few prior sessions so Route Compare has a baseline to compare against.
+    const now = Date.now();
+    return [
+      {
+        id: "seed-run-1",
+        activity: "run",
+        distanceKm: 8.4,
+        durationSec: 42 * 60,
+        finishedAt: new Date(now - 86400 * 1000).toISOString(),
+      },
+      {
+        id: "seed-hike-1",
+        activity: "hike",
+        distanceKm: 14.2,
+        durationSec: 245 * 60,
+        finishedAt: new Date(now - 86400 * 1000 * 3).toISOString(),
+      },
+      {
+        id: "seed-cycle-1",
+        activity: "cycle",
+        distanceKm: 32.1,
+        durationSec: 88 * 60,
+        finishedAt: new Date(now - 86400 * 1000 * 5).toISOString(),
+      },
+    ];
+  });
   const [stories, setStories] = useState<UserStory[]>(SEED_USER_STORIES);
   const [safetyContact, setSafetyContactState] = useState<SafetyContact | null>({
     name: "Sam Reyes",
@@ -307,6 +341,28 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return count;
   }, [weeklyMoveDays]);
 
+  // Recovery score — 0..100. High = fresh. Heuristic uses recent training minutes
+  // in the last 3 sessions, decayed with a floor to make sure Start always feels
+  // possible: even at zero recovery we never hide the Start button.
+  const recoveryScore = useMemo(() => {
+    const recent = sessions.slice(0, 3);
+    const minutes = recent.reduce((a, s) => a + s.durationSec / 60, 0);
+    // 90 min of recent load → 20% recovery. 0 min → 90% (rested).
+    const raw = 90 - minutes * 0.8 - weeklyMoveDays.length * 4;
+    return Math.max(15, Math.min(100, Math.round(raw)));
+  }, [sessions, weeklyMoveDays]);
+
+  const getBestSession = useCallback(
+    (activity: ActivityType, excludeId?: string): CompletedSession | null => {
+      const pool = sessions.filter(
+        (s) => s.activity === activity && s.id !== excludeId,
+      );
+      if (pool.length === 0) return null;
+      return pool.reduce((best, s) => (s.distanceKm > best.distanceKm ? s : best));
+    },
+    [sessions],
+  );
+
   const maxSessionDistanceKm = useMemo(() => {
     return sessions.reduce((mx, s) => Math.max(mx, s.distanceKm), 0);
   }, [sessions]);
@@ -328,6 +384,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       sendChat,
       weeklyMoveDays,
       streakDays,
+      recoveryScore,
+      getBestSession,
     }),
     [
       sessions,
@@ -345,6 +403,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       sendChat,
       weeklyMoveDays,
       streakDays,
+      recoveryScore,
+      getBestSession,
     ],
   );
 
