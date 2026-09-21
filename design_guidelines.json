@@ -1,0 +1,229 @@
+{
+  "app_name": "Project Horizon",
+  "personality": "7 Dark-First Utility with 6 Glass / Luxe spacing",
+  "personality_one_liner": "A premium, high-contrast command center for outdoor movement that feels tactical, atmospheric, and distinctly non-generic.",
+  "color": {
+    "surface": "#0A0A0A",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1A1A1A",
+    "onSurfaceSecondary": "#EAEAEA",
+    "surfaceTertiary": "#242424",
+    "onSurfaceTertiary": "#D4D4D4",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#0A0A0A",
+    "brand": "#C6FF3D",
+    "onBrand": "#000000",
+    "brandPrimary": "#C6FF3D",
+    "onBrandPrimary": "#000000",
+    "brandSecondary": "#9ACC2A",
+    "onBrandSecondary": "#000000",
+    "brandTertiary": "#2A3311",
+    "onBrandTertiary": "#C6FF3D",
+    "success": "#C6FF3D",
+    "onSuccess": "#000000",
+    "warning": "#FFB340",
+    "onWarning": "#000000",
+    "error": "#FF4D4D",
+    "onError": "#FFFFFF",
+    "info": "#E0E0E0",
+    "onInfo": "#000000",
+    "border": "#333333",
+    "borderStrong": "#4D4D4D",
+    "divider": "#2A2A2A",
+    "muted": "#808080"
+  },
+  "typography": {
+    "displayFontFamily": "SpaceGrotesk-Medium",
+    "textFontFamily": "Geist-Regular",
+    "metricsFontFamily": "SpaceGrotesk-Medium",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 48
+    }
+  },
+  "spacing": {
+    "rule": "Generous luxury spacing rhythms combined with dense utility metric clusters. No cramped cards.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "1",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use heavily tinted dark glass over outdoor imagery for hero cards.",
+      "Bottom tab bar must have a frosted glass effect layered over content.",
+      "Use glass for the floating map action buttons in Explore."
+    ],
+    "dont's": [
+      "Do not apply glass to metric cards or basic list rows.",
+      "Do not use light/white blur, only deep dark frosted glass."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "Command center giving an immediate overview of today's potential and recent achievements.",
+      "states": {
+        "loading": "Dark skeleton pulses on hero and metric cards",
+        "empty": "No recent activity: show a dramatic 'Start your first adventure' hero card.",
+        "error": "Failed to load feed: simple text and subtle reload icon."
+      },
+      "layout": "1. Greeting (SpaceGrotesk xl). 2. Hero Recommendation Card (Full width, dramatic outdoor photo background, bottom gradient scrim, title, lime brandPrimary CTA pill). 3. Recent Activity Horizontal Scroll (Cards with route shape SVG, distance, duration). 4. Explore Teaser list."
+    },
+    {
+      "name": "Move",
+      "purpose": "High-contrast, distraction-free active session tracker.",
+      "states": {
+        "loading": "GPS locking indicator (mock)",
+        "empty": "N/A",
+        "error": "Location error warning toast in Warning Amber."
+      },
+      "layout": "Selector State: 4 large cards (2x2 grid) for Run, Walk, Cycle, Hike with subtle background photos and tinted overlays. Active State: Huge SpaceGrotesk metrics at top (Duration, Pace, Heart Rate), map/route preview in middle, large primary CTA (Pause/Finish) at bottom fixed above safe area."
+    },
+    {
+      "name": "Explore",
+      "purpose": "Discovery surface for new trails and regions using atmospheric terrain visual abstractions.",
+      "states": {
+        "loading": "Map loading grid pulse",
+        "empty": "No routes in area: show illustration of empty trail and 'Search wider area' button.",
+        "error": "Failed to load map data."
+      },
+      "layout": "Full-bleed dark map placeholder (or static dark topographic map image). Floating Action Button (FAB) for map layers. Bottom sheet anchored at 25% exposing 'Curated Routes'. When sheet expands, shows list of dramatic aerial trail photos with distance/elevation metadata."
+    },
+    {
+      "name": "Stories",
+      "purpose": "Immersive visual feed of outdoor experiences, deeply tied to movement data.",
+      "states": {
+        "loading": "Skeleton of large cards",
+        "empty": "Illustration of campfire with 'Follow squads to see stories'.",
+        "error": "Network error with retry."
+      },
+      "layout": "Vertical scroll of edge-to-edge cards. Each card is an immersive outdoor photo with a 3-stop vertical gradient scrim (transparent to surfaceInverse). At bottom: Avatar, Username, Story Title, and a brandTertiary chip showing the activity stat (e.g., '14.2km Hike')."
+    },
+    {
+      "name": "Connect",
+      "purpose": "Community challenges and squad leaderboards without toxic generic social metrics.",
+      "states": {
+        "loading": "Skeleton rows",
+        "empty": "Illustration of hikers with 'Join a squad'.",
+        "error": "Failed to load squads."
+      },
+      "layout": "Segmented control (Squads | Challenges). List of squads showing rank, avatar stack, and total squad distance. High contrast dividers. No generic 'likes' - focus on shared milestones and progression bars."
+    },
+    {
+      "name": "Profile",
+      "purpose": "Identity and lifetime outdoor progression showcase.",
+      "states": {
+        "loading": "Skeleton",
+        "empty": "N/A",
+        "error": "N/A"
+      },
+      "layout": "Top cover banner (dark moody photo), overlapping Avatar. Name and bio. 'Lifetime Distance' hero metric. Grid of achievement badges (subtle surfaceTertiary circles with lime icons). Activity history list."
+    }
+  ],
+  "components": {
+    "PrimaryButton": "Pill shape (pill radius), brandPrimary (lime) background, onBrandPrimary text. No borders.",
+    "SecondaryButton": "Pill shape, transparent background, borderStrong outline, white text.",
+    "MetricCard": "surfaceSecondary background, md radius. Value in SpaceGrotesk (lg/xl), label in muted Geist (sm).",
+    "StoryCard": "Full-bleed or lg radius card. Must implement the 3-stop vertical gradient scrim over the image. Text is always white (onSurfaceInverse).",
+    "Chip": "surfaceTertiary or brandTertiary background. sm radius. Used for activity types or tags.",
+    "Avatar": "Real photo. If initials, use surfaceTertiary with white text."
+  },
+  "images": {
+    "home_hero": {
+      "url": "https://images.pexels.com/photos/34377535/pexels-photo-34377535.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Mountain biker prepares for night ride at sunset with a headlamp"
+    },
+    "activity_run": {
+      "url": "https://images.pexels.com/photos/15457899/pexels-photo-15457899.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Runner on outdoor trail"
+    },
+    "activity_cycle": {
+      "url": "https://images.pexels.com/photos/5965907/pexels-photo-5965907.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Cyclist on autumn trail"
+    },
+    "activity_hike": {
+      "url": "https://images.unsplash.com/photo-1699959560616-aa17ace76879?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHwyfHxydW5uaW5nJTIwY3ljbGluZyUyMGhpa2luZyUyMHdhbGtpbmclMjBvdXRkb29yfGVufDB8fHx8MTc4OTg4NTg5OXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Group hiking up mountain"
+    },
+    "explore_route_1": {
+      "url": "https://images.pexels.com/photos/18804214/pexels-photo-18804214.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Aerial pine forest"
+    },
+    "explore_route_2": {
+      "url": "https://images.pexels.com/photos/26628623/pexels-photo-26628623.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Verdant mountain range"
+    },
+    "explore_route_3": {
+      "url": "https://images.unsplash.com/photo-1753119326723-55f030d81da5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxkcmFtYXRpYyUyMG1vdW50YWluJTIwZm9yZXN0JTIwdHJhaWwlMjBhZXJpYWx8ZW58MHx8fHwxNzg5ODg1ODk5fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Bridge spanning canyon"
+    },
+    "story_card_1": {
+      "url": "https://images.unsplash.com/photo-1623228675987-57d5999f6c5b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxwb3YlMjBvdXRkb29yJTIwYWR2ZW50dXJlJTIwaGlraW5nJTIwY2FtcGluZyUyMGZyaWVuZHN8ZW58MHx8fHwxNzg5ODg1OTA2fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "POV looking out of tent at mountains"
+    },
+    "story_card_2": {
+      "url": "https://images.pexels.com/photos/4275973/pexels-photo-4275973.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Camping by serene lake"
+    },
+    "story_card_3": {
+      "url": "https://images.pexels.com/photos/29176030/pexels-photo-29176030.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Lone hiker with headlamp at night"
+    },
+    "avatar_1": {
+      "url": "https://images.unsplash.com/photo-1600505570235-b30d6fe213f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbW9vZHklMjBvdXRkb29yJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg5ODg1ODk5fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Man outdoor portrait"
+    },
+    "avatar_2": {
+      "url": "https://images.pexels.com/photos/3955423/pexels-photo-3955423.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Woman in dark forest setting"
+    }
+  },
+  "haptics": {
+    "primary_button_press": "impactLight",
+    "activity_start": "impactMedium",
+    "activity_pause": "impactHeavy",
+    "tab_switch": "selection",
+    "map_layer_toggle": "impactLight"
+  },
+  "instructions_to_main_agent": [
+    "Strictly enforce the 500 max font weight rule. SpaceGrotesk should be used at 500Medium for display and metrics, and Geist at 400Regular for body.",
+    "Implement the 3-stop vertical gradient scrim (transparent to surfaceInverse >= 70%) on ALL image-backed cards (Stories, Hero, Explore routes) to guarantee text contrast. Ensure text is layered on top, not behind the gradient.",
+    "Maintain the layout strictness: No equal-sized card dashboards. Create intentional focal points with asymmetric layout components (e.g. 1 Hero + horizontal scroll).",
+    "Do NOT use @expo/vector-icons. Only use react-native-vector-icons with Phosphor icons or Feather if Phosphor is unavailable.",
+    "Do NOT use @expo-google-fonts. Load SpaceGrotesk and Geist via expo-font with local or remote assets.",
+    "Background should be near-black (#0A0A0A) and graphite (#1A1A1A/#242424) for surfaces. The electric lime (#C6FF3D) is the ONLY accent color, used sparingly for active states and primary CTAs.",
+    "In 'Move' active session, prioritize glanceability with huge typography for metrics.",
+    "For the 'Explore' tab map, use a static dark topographic map image or a dark-themed react-native-maps instance to act as the placeholder.",
+    "Do not use generic 'social' or 'fitness' concepts. Maintain the premium outdoor/adventure atmosphere through the curated imagery and restrained lime accent."
+  ]
+}
