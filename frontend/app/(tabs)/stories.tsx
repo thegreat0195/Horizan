@@ -1,15 +1,15 @@
 import React from "react";
-import { Dimensions, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import FeatherIcon from "@react-native-vector-icons/feather";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { fonts, fontSize, makeStyles, radius, spacing, useTheme } from "@/src/theme";
-import { STORIES } from "@/src/data/mock";
-import { Avatar, Chip, IconButton, ScreenHeading } from "@/src/components/ui";
-
-const { width: SCREEN_W } = Dimensions.get("window");
+import { ACTIVITY_META } from "@/src/data/mock";
+import { Avatar, Chip, IconButton } from "@/src/components/ui";
+import { useAppState } from "@/src/state/store";
 
 const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.surface },
@@ -91,6 +91,8 @@ export default function StoriesScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + insets.bottom;
+  const router = useRouter();
+  const { stories } = useAppState();
 
   return (
     <View style={styles.root}>
@@ -135,58 +137,78 @@ export default function StoriesScreen() {
               From the trail
             </Text>
           </View>
-          <IconButton name="plus" testID="stories-new-button" />
+          <IconButton
+            name="plus"
+            onPress={() => router.push("/story-compose")}
+            testID="stories-new-button"
+          />
         </View>
 
-        {STORIES.map((s) => (
-          <View key={s.id} style={styles.card} testID={`story-${s.id}`}>
-            <Image source={{ uri: s.image }} style={styles.cardImage} contentFit="cover" />
-            <LinearGradient
-              colors={[
-                "rgba(10,10,10,0.55)",
-                "rgba(10,10,10,0.15)",
-                "rgba(10,10,10,0.95)",
-              ]}
-              locations={[0, 0.35, 1]}
-              style={styles.cardScrim}
-            />
+        {stories.map((s) => {
+          const meta = ACTIVITY_META[s.activity];
+          const chipLabel = s.distanceKm > 0
+            ? `${s.distanceKm.toFixed(1)}km · ${meta.label}`
+            : meta.label;
+          return (
+            <View key={s.id} style={styles.card} testID={`story-${s.id}`}>
+              <Image source={{ uri: s.photoUri }} style={styles.cardImage} contentFit="cover" />
+              <LinearGradient
+                colors={[
+                  "rgba(10,10,10,0.55)",
+                  "rgba(10,10,10,0.15)",
+                  "rgba(10,10,10,0.95)",
+                ]}
+                locations={[0, 0.35, 1]}
+                style={styles.cardScrim}
+              />
 
-            <View style={styles.cardTop}>
-              <View style={styles.authorRow}>
-                <Avatar uri={s.avatar} size={40} />
-                <View>
-                  <Text style={styles.authorName}>{s.author}</Text>
-                  <Text style={styles.location}>{s.location}</Text>
+              <View style={styles.cardTop}>
+                <View style={styles.authorRow}>
+                  <Avatar
+                    uri="https://images.unsplash.com/photo-1600505570235-b30d6fe213f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbW9vZHklMjBvdXRkb29yJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg5ODg1ODk5fDA&ixlib=rb-4.1.0&q=85"
+                    size={40}
+                  />
+                  <View>
+                    <Text style={styles.authorName}>
+                      {s.createdAt === "seed" ? "Ada Winter" : "You"}
+                    </Text>
+                    <Text style={styles.location}>{s.location}</Text>
+                  </View>
                 </View>
+                <FeatherIcon name="more-horizontal" size={22} color="#FFFFFF" />
               </View>
-              <FeatherIcon name="more-horizontal" size={22} color="#FFFFFF" />
-            </View>
 
-            <View style={styles.cardBottom}>
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                <Chip label={s.activityChip} variant="brand" />
-              </View>
-              <Text style={styles.storyTitle}>{s.title}</Text>
-              <Text style={styles.reflection} numberOfLines={2}>
-                {s.reflection}
-              </Text>
-              <View style={styles.actionsRow}>
-                <View style={styles.actionItem}>
-                  <FeatherIcon name="award" size={16} color={colors.brandPrimary} />
-                  <Text style={styles.actionText}>Applaud</Text>
+              <View style={styles.cardBottom}>
+                <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+                  <Chip label={chipLabel} variant="brand" />
+                  {s.moods.slice(0, 2).map((m) => (
+                    <Chip key={m} label={m} />
+                  ))}
                 </View>
-                <View style={styles.actionItem}>
-                  <FeatherIcon name="message-circle" size={16} color="#FFFFFF" />
-                  <Text style={styles.actionText}>Reflect</Text>
-                </View>
-                <View style={styles.actionItem}>
-                  <FeatherIcon name="share-2" size={16} color="#FFFFFF" />
-                  <Text style={styles.actionText}>Share</Text>
+                <Text style={styles.storyTitle}>{s.title}</Text>
+                {s.reflection ? (
+                  <Text style={styles.reflection} numberOfLines={2}>
+                    {s.reflection}
+                  </Text>
+                ) : null}
+                <View style={styles.actionsRow}>
+                  <View style={styles.actionItem}>
+                    <FeatherIcon name="award" size={16} color={colors.brandPrimary} />
+                    <Text style={styles.actionText}>Applaud</Text>
+                  </View>
+                  <View style={styles.actionItem}>
+                    <FeatherIcon name="message-circle" size={16} color="#FFFFFF" />
+                    <Text style={styles.actionText}>Reflect</Text>
+                  </View>
+                  <View style={styles.actionItem}>
+                    <FeatherIcon name="share-2" size={16} color="#FFFFFF" />
+                    <Text style={styles.actionText}>Share</Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
     </View>
   );

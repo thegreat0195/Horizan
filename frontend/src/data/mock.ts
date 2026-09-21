@@ -82,6 +82,7 @@ export const EXPLORE_ROUTES = [
     distanceKm: 14.2,
     elevationM: 820,
     difficulty: "Hard",
+    coord: { latitude: 47.6062, longitude: -122.3321 },
     image:
       "https://images.pexels.com/photos/18804214/pexels-photo-18804214.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   },
@@ -92,6 +93,7 @@ export const EXPLORE_ROUTES = [
     distanceKm: 22.8,
     elevationM: 1240,
     difficulty: "Expert",
+    coord: { latitude: 47.65, longitude: -122.4 },
     image:
       "https://images.pexels.com/photos/26628623/pexels-photo-26628623.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   },
@@ -102,6 +104,7 @@ export const EXPLORE_ROUTES = [
     distanceKm: 9.6,
     elevationM: 340,
     difficulty: "Moderate",
+    coord: { latitude: 47.58, longitude: -122.27 },
     image:
       "https://images.unsplash.com/photo-1753119326723-55f030d81da5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxkcmFtYXRpYyUyMG1vdW50YWluJTIwZm9yZXN0JTIwdHJhaWwlMjBhZXJpYWx8ZW58MHx8fHwxNzg5ODg1ODk5fDA&ixlib=rb-4.1.0&q=85",
   },
@@ -112,6 +115,7 @@ export const EXPLORE_ROUTES = [
     distanceKm: 6.2,
     elevationM: 120,
     difficulty: "Easy",
+    coord: { latitude: 47.62, longitude: -122.36 },
     image:
       "https://images.pexels.com/photos/18804214/pexels-photo-18804214.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   },

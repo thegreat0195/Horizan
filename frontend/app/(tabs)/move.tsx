@@ -5,10 +5,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import FeatherIcon from "@react-native-vector-icons/feather";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 
 import { fonts, fontSize, makeStyles, radius, spacing, useTheme } from "@/src/theme";
-import { ACTIVITY_META, ActivityType } from "@/src/data/mock";
+import { ACTIVITY_META, ActivityType, SQUADS } from "@/src/data/mock";
 import { DangerButton, IconButton, MetricCard, PrimaryButton, ScreenHeading, SecondaryButton } from "@/src/components/ui";
+import { SafetyHalo } from "@/src/components/safety-halo";
+import { useAppState } from "@/src/state/store";
 
 type Phase = "select" | "ready" | "active" | "paused" | "summary";
 
@@ -129,6 +132,8 @@ export default function MoveScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + insets.bottom;
+  const router = useRouter();
+  const { addSession, contributeKm } = useAppState();
 
   const [phase, setPhase] = useState<Phase>("select");
   const [selected, setSelected] = useState<ActivityType>("run");
@@ -177,6 +182,13 @@ export default function MoveScreen() {
 
   const handleFinish = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    // Commit session to app state so Explore territory + missions update.
+    addSession({
+      activity: selected,
+      distanceKm: parseFloat(distance.toFixed(2)),
+      durationSec: elapsed,
+    });
+    contributeKm(SQUADS[0].id, parseFloat(distance.toFixed(2)));
     setPhase("summary");
   };
 
@@ -347,7 +359,18 @@ export default function MoveScreen() {
               label="Save as story"
               icon="book-open"
               fullWidth
-              onPress={handleDiscard}
+              onPress={() => {
+                router.push({
+                  pathname: "/story-compose",
+                  params: {
+                    activity: selected,
+                    distance: distance.toFixed(2),
+                    duration: String(elapsed),
+                  },
+                });
+                // Reset so returning shows the selector
+                setTimeout(() => handleDiscard(), 300);
+              }}
               testID="move-save-story"
             />
             <SecondaryButton
@@ -373,7 +396,11 @@ export default function MoveScreen() {
             <Text style={styles.eyebrow}>{isPaused ? "Paused" : "Active"}</Text>
             <Text style={styles.activeType}>{meta.label}</Text>
           </View>
-          <IconButton name="shield" testID="move-safety-button" />
+          <IconButton
+            name="user"
+            onPress={() => router.push("/safety-contact")}
+            testID="move-safety-contact-button"
+          />
         </View>
       </View>
 
@@ -383,7 +410,7 @@ export default function MoveScreen() {
           <Text style={styles.gpsText}>DEMO MODE · SIMULATED METRICS</Text>
         </View>
 
-        <View style={{ marginTop: spacing.xxxl }}>
+        <View style={{ marginTop: spacing.xl }}>
           <Text style={styles.bigMetric}>{formatDuration(elapsed)}</Text>
           <Text style={styles.bigLabel}>Duration</Text>
         </View>
@@ -392,7 +419,7 @@ export default function MoveScreen() {
           style={{
             flexDirection: "row",
             gap: spacing.md,
-            marginTop: spacing.xxxl,
+            marginTop: spacing.xl,
           }}
         >
           <MetricCard
@@ -408,6 +435,10 @@ export default function MoveScreen() {
             compact
           />
           <MetricCard value={`${MOCK_HR[selected]}`} label="BPM" compact />
+        </View>
+
+        <View style={{ marginTop: spacing.xl, alignItems: "center" }}>
+          <SafetyHalo activityLabel={meta.label} />
         </View>
       </View>
 

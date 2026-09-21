@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorBoundary } from "@/src/components/error-boundary";
 import { queryClient } from "@/src/query-client";
 import { useTheme } from "@/src/theme";
+import { AppStateProvider } from "@/src/state/store";
 
 LogBox.ignoreAllLogs(true);
 
@@ -35,14 +36,16 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.surface }}>
         <QueryClientProvider client={queryClient}>
           <KeyboardProvider>
-            <StatusBar style="light" />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.surface },
-                animation: Platform.OS === "ios" ? "default" : "fade",
-              }}
-            />
+            <AppStateProvider>
+              <StatusBar style="light" />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: colors.surface },
+                  animation: Platform.OS === "ios" ? "default" : "fade",
+                }}
+              />
+            </AppStateProvider>
           </KeyboardProvider>
         </QueryClientProvider>
       </GestureHandlerRootView>

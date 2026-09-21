@@ -3,70 +3,99 @@
 ## Product
 
 Project Horizon is a premium, outdoor-focused mobile experience platform organized around 5 pillars:
-**Move, Explore, Stories, Connect, Safety**. It is not a generic fitness tracker, not a social feed, not a map app — it is an outdoor experience platform with a strong, distinctive product identity.
+**Move, Explore, Stories, Connect, Safety**. Not a fitness tracker, not a social feed, not a map app —
+its own product identity in the outdoor experience category.
 
 ## Design language
 
-- **Personality**: Dark-First Utility with Luxe spacing. Premium, energetic, outdoor, technical, human.
-- **Foundation**: Near-black `#0A0A0A` background, graphite surfaces `#1A1A1A` / `#242424`.
-- **Accent**: Electric lime `#C6FF3D` — used only for primary CTAs, active states, progress, achievements, and important metrics. Never for decorative fill.
-- **Typography**: `SpaceGrotesk-Medium` for display and metrics, `Geist-Regular/Medium` for body. Local fonts under `/app/frontend/assets/fonts/`.
-- **Icons**: `@react-native-vector-icons/feather` (no emoji, no `@expo/vector-icons`).
-- **Hero photography**: Curated outdoor imagery with 3-stop dark scrim for legibility.
-
-Design tokens live in `/app/frontend/src/theme.ts`. Colors match `design_guidelines.json`. Additional exports: `spacing`, `radius`, `fonts`, `fontSize`.
+- **Personality**: Dark-First Utility with Luxe spacing. Premium, energetic, outdoor.
+- **Foundation**: `#0A0A0A` background, graphite `#1A1A1A` / `#242424` surfaces.
+- **Accent**: Electric lime `#C6FF3D` — CTAs, active states, progress, achievements only.
+- **Typography**: `SpaceGrotesk-Medium` display/metric, `Geist-Regular/Medium` body (local `.ttf` assets).
+- **Icons**: `@react-native-vector-icons/feather`.
 
 ## Navigation
 
-- 5 bottom tabs (Expo Router `(tabs)` group): `Home`, `Move`, `Explore`, `Stories`, `Connect`.
-- Profile is a stack route accessible from the home avatar button (`/profile`).
-- Safety is a contextual `shield` icon on Home and the active Move session (no fake emergency infra).
-- Blur-tinted glass tab bar on native, solid on web.
+- 5 bottom tabs: Home, Move, Explore, Stories, Connect.
+- Stack routes: `/profile`, `/story-compose`, `/safety-contact`, `/mission/[id]`.
 
-## Screens
+## Features
 
-### Home (`app/(tabs)/index.tsx`)
-Command center — greeting, hero recommendation card (large image, gradient scrim, lime CTA), weekly summary metrics, recent activity horizontal scroll, Explore teaser, Story of the week, squad activity row.
+### 1. Home
+Personal command center — greeting, dominant hero recommendation card, weekly summary metrics,
+recent-activity horizontal scroll, Explore & Stories teasers, squad row.
 
-### Move (`app/(tabs)/move.tsx`)
-Local state machine: `select → active → paused → summary`.
-- **Select**: 2×2 grid of activity cards (Run/Walk/Cycle/Hike) with dark scrims and outdoor imagery. Selected card gets a lime border + lime icon. Sticky floating "Start" CTA.
-- **Active**: Distraction-free session view. Huge duration in `SpaceGrotesk-Medium`. Three compact metric cards (distance, pace, BPM). Clearly labelled "DEMO MODE · SIMULATED METRICS" — no real GPS.
-- **Paused**: Same layout, adds Resume + Finish (danger) controls.
-- **Summary**: "Nice work.", big distance metric, 4 compact metric cards, Save-as-story CTA.
-Haptic feedback on every state change (`impactMedium` start, `impactHeavy` pause, `notificationSuccess` finish).
+### 2. Move — active session flow
+State machine `select → active → paused → summary`. Each activity has a photo card in a 2×2 grid,
+selected card gets a lime border. Active view shows huge `SpaceGrotesk` timer, three compact metric cards,
+and the **Safety Halo** (see #5). Every state transition triggers a haptic. Metrics are clearly labelled
+`DEMO MODE · SIMULATED METRICS` — no real GPS. Finishing a session commits it to the app store,
+which unlocks Explore territory and contributes to the Squad Mission.
 
-### Explore (`app/(tabs)/explore.tsx`)
-Full-bleed atmospheric terrain "map preview" (image + scrim) clearly labelled `MAP · DEMO PREVIEW`, floating layer/nav icon buttons, sticky horizontal chip row (Near you, Trails, Peaks, Loops, Sunset, Long routes), curated route cards with difficulty chip, distance, elevation.
+### 3. Territory Explorer (Explore)
+- **Native** (Expo Go / dev build): Interactive `react-native-maps` with a custom dark topographic
+  theme, route pins that are locked (grey lock icon) or unlocked (lime pin). Tap a pin or route card
+  to open a detail sheet with distance, elevation, difficulty, and a "Plan route" CTA when unlocked,
+  or a locked message when not.
+- **Web preview**: Atmospheric fallback image, same locked/unlocked route cards.
+- Routes unlock as the user's max completed session distance meets each route's `distanceKm`.
+- One-tap locate button requests `expo-location` foreground permission and pans the map.
 
-### Stories (`app/(tabs)/stories.tsx`)
-Immersive edge-to-edge story cards. Each card = outdoor image + 3-stop gradient + author row + activity chip + title + reflection + Applaud/Reflect/Share actions. Not a like/comment social feed.
+### 4. Adventure Journal (`/story-compose`)
+Photo-first story composer reached from the Move summary. Hero photo picker (native gallery via
+`expo-image-picker` with graceful fallback to a curated image gallery). Prefilled activity/distance/
+duration pills. Title, reflection, and 6 mood chips (Focused, Grateful, Peaceful, Wild, Humbled,
+Joyful). Publishing prepends the story to the Stories feed with a "You" attribution.
 
-### Connect (`app/(tabs)/connect.tsx`)
-Segmented control `Squads | Challenges`. Squads = weekly leaderboard with rank number in lime, avatar, member count and squad km. Challenges = progress bars with lime fill.
+### 5. Safety Halo (in the active Move session)
+Custom hold-to-send button with an animated SVG progress ring and idle pulse (`react-native-reanimated`
++ `react-native-svg`). Hold 1.6 s → the app records a mock ping to the user's chosen safety contact
+and shows an on-screen confirmation. Tap the person icon in the header to set/edit the contact
+(`/safety-contact`). Every surface repeats "demo mode — no real message sent" so users cannot mistake
+it for real emergency infrastructure.
 
-### Profile (`app/profile.tsx`)
-Cover banner with dark scrim, overlapping avatar, name/handle/bio, lifetime distance hero card in lime, sessions/peaks metric cards, achievements grid (unlocked = lime, locked = muted), history list.
+### 6. Weekly Mission (Connect + `/mission/[id]`)
+- Connect gets a hero card showing this week's squad mission with progress bar and ends-in label.
+- Tap opens the mission detail: cover image, description, big lime progress metric, full leaderboard
+  with the current user highlighted in the brand-tertiary row.
+- When squad hits `progress >= 1`, the progress card is replaced with a **Celebration** panel:
+  pulsing lime award icon + "Mission complete" copy.
+- Every finished Move session contributes km to the user's row in the squad leaderboard.
 
 ## Component library (`src/components/ui.tsx`)
 
-`PrimaryButton`, `SecondaryButton`, `DangerButton`, `IconButton`, `SectionHeader`, `ScreenHeading`, `MetricCard`, `Chip`, `Avatar`, `Badge`, `ProgressBar`, `EmptyState`.
+`PrimaryButton`, `SecondaryButton`, `DangerButton`, `IconButton`, `SectionHeader`, `ScreenHeading`,
+`MetricCard`, `Chip`, `Avatar`, `Badge`, `ProgressBar`, `EmptyState`, `SafetyHalo`.
 
-All consume theme tokens; no hex literals in screens.
+All consume theme tokens from `src/theme.ts`; no color literals in screens.
+
+## State
+
+`src/state/store.tsx` — a lightweight React Context providing:
+`sessions[]`, `addSession`, `maxSessionDistanceKm` (drives Explore unlocks), `stories[]`, `addStory`,
+`safetyContact`, `setSafetyContact`, `lastSafetyPing`, `sendSafetyPing`, `missions[]`, `contributeKm`.
+In-memory for the demo — swap to persistence later without changing the shape.
 
 ## Data
 
-Pure mock content under `src/data/mock.ts` — recent activities, explore routes, stories, squads, challenges, achievements, profile. No backend, no real GPS, no fake emergency services, no auth.
+Pure mock content in `src/data/mock.ts` (activities, routes, stories, squads, achievements, profile).
+Routes carry real lat/lng so the interactive map has meaningful pins.
 
 ## Out-of-scope / future
 
-Real maps + GPS · real activity persistence · authentication · social graph · emergency services · wearables · AI recommendations. Architecture leaves clean boundaries (single `mock.ts` provider) so real services can slot in without redesign.
+Real backend, authentication, real messaging, wearables, AI recommendations. Architecture leaves
+clean boundaries so any of those can slot in without redesign.
 
 ## Tech
 
 - Expo SDK 57, Expo Router v5, React Native 0.86.
-- Fonts loaded via `expo-font` from local `.ttf` assets.
-- Blur tab bar via `expo-blur`.
-- Images via `expo-image`, gradients via `expo-linear-gradient`.
-- Haptics via `expo-haptics`.
-- Safe areas via `react-native-safe-area-context` (all screens honour `useSafeAreaInsets()`).
+- `react-native-maps` (native only), `expo-location`, `expo-image-picker`.
+- `react-native-reanimated`, `react-native-svg` for Safety Halo.
+- `expo-blur` glass tab bar on native, solid on web.
+- `expo-image`, `expo-linear-gradient`, `expo-haptics`, `expo-font`.
+- `react-native-safe-area-context` on every screen.
+
+## Native-only features
+
+- **Interactive Territory map** — falls back to an atmospheric image on the web preview. Test on a real device via Expo Go / a dev build.
+- **Photo gallery picking** for Adventure Journal — works on device only; the web preview cycles through curated images.
