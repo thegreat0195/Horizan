@@ -37,6 +37,17 @@ export type UserStory = {
 export type SafetyContact = { name: string; relation: string };
 export type SafetyPing = { at: string; contactName: string };
 
+export type ChatMessage = {
+  id: string;
+  author: string;
+  avatar?: string;
+  kind: "text" | "cheer" | "photo";
+  body?: string;
+  photoUri?: string;
+  createdAt: string;
+  mine?: boolean;
+};
+
 export type SquadMission = {
   id: string;
   squadId: string;
@@ -108,6 +119,57 @@ const SEED_USER_STORIES: UserStory[] = STORIES.map((s) => ({
   createdAt: "seed",
 }));
 
+// Seed chat threads for the missions so the UI shows life.
+const SEED_CHATS: Record<string, ChatMessage[]> = {
+  "m-northside": [
+    {
+      id: "c1",
+      author: "Ada Winter",
+      avatar:
+        "https://images.pexels.com/photos/3955423/pexels-photo-3955423.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=200&w=200",
+      kind: "text",
+      body: "Anyone doing the 6am tomorrow? Foggy but calm.",
+      createdAt: new Date(Date.now() - 3600 * 1000 * 5).toISOString(),
+    },
+    {
+      id: "c2",
+      author: "Kai Rowan",
+      avatar:
+        "https://images.unsplash.com/photo-1600505570235-b30d6fe213f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDV8MHwxfHNlYXJjaHw0fHxkYXJrJTIwbW9vZHklMjBvdXRkb29yJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzg5ODg1ODk5fDA&ixlib=rb-4.1.0&q=85",
+      kind: "photo",
+      body: "Top of Blackridge — squad's crushing it 👏",
+      photoUri:
+        "https://images.pexels.com/photos/26628623/pexels-photo-26628623.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      createdAt: new Date(Date.now() - 3600 * 1000 * 2).toISOString(),
+    },
+    {
+      id: "c3",
+      author: "Sana M.",
+      kind: "cheer",
+      body: "👏 Sending love from the trail",
+      createdAt: new Date(Date.now() - 60 * 1000 * 40).toISOString(),
+    },
+  ],
+  "m-cascade": [
+    {
+      id: "cc1",
+      author: "Fern L.",
+      kind: "text",
+      body: "Weather looks perfect Saturday — meet at trailhead?",
+      createdAt: new Date(Date.now() - 3600 * 1000 * 8).toISOString(),
+    },
+  ],
+  "m-ironwheels": [
+    {
+      id: "iw1",
+      author: "Rio B.",
+      kind: "cheer",
+      body: "👏 Send it 🚴",
+      createdAt: new Date(Date.now() - 60 * 1000 * 90).toISOString(),
+    },
+  ],
+};
+
 type Ctx = {
   sessions: CompletedSession[];
   addSession: (s: Omit<CompletedSession, "id" | "finishedAt">) => CompletedSession;
@@ -123,6 +185,15 @@ type Ctx = {
 
   missions: SquadMission[];
   contributeKm: (squadId: string, km: number) => void;
+
+  chats: Record<string, ChatMessage[]>;
+  sendChat: (
+    missionId: string,
+    msg: Omit<ChatMessage, "id" | "createdAt" | "mine" | "author">,
+  ) => void;
+
+  weeklyMoveDays: number[]; // day-of-week indices (0=Mon..6=Sun) the user moved
+  streakDays: number;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -136,6 +207,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   });
   const [lastSafetyPing, setLastSafetyPing] = useState<SafetyPing | null>(null);
   const [missions, setMissions] = useState<SquadMission[]>(INITIAL_MISSIONS);
+  const [chats, setChats] = useState<Record<string, ChatMessage[]>>(SEED_CHATS);
+  // Seed streak: current day-of-week + prior 4 days as active (Mon..today).
+  const [weeklyMoveDays, setWeeklyMoveDays] = useState<number[]>(() => {
+    const today = (new Date().getDay() + 6) % 7; // 0=Mon..6=Sun
+    const seed = new Set<number>();
+    // Seed a plausible active pattern: today, yesterday, and 2 earlier days
+    seed.add(today);
+    if (today - 1 >= 0) seed.add(today - 1);
+    if (today - 3 >= 0) seed.add(today - 3);
+    return Array.from(seed).sort((a, b) => a - b);
+  });
 
   const addSession = useCallback(
     (s: Omit<CompletedSession, "id" | "finishedAt">) => {
@@ -145,6 +227,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         finishedAt: new Date().toISOString(),
       };
       setSessions((prev) => [session, ...prev]);
+      // Mark today active in the streak.
+      const today = (new Date().getDay() + 6) % 7;
+      setWeeklyMoveDays((prev) => (prev.includes(today) ? prev : [...prev, today].sort((a, b) => a - b)));
       return session;
     },
     [],
@@ -186,6 +271,42 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const sendChat = useCallback(
+    (
+      missionId: string,
+      msg: Omit<ChatMessage, "id" | "createdAt" | "mine" | "author">,
+    ) => {
+      const message: ChatMessage = {
+        ...msg,
+        id: `chat-${Date.now()}`,
+        author: "You",
+        mine: true,
+        createdAt: new Date().toISOString(),
+      };
+      setChats((prev) => ({
+        ...prev,
+        [missionId]: [...(prev[missionId] ?? []), message],
+      }));
+    },
+    [],
+  );
+
+  // Streak = current consecutive active days ending today (rest days do NOT reset
+  // if the user simply hasn't moved *yet* today — we still show the streak up
+  // to yesterday). Any older gap breaks the streak.
+  const streakDays = useMemo(() => {
+    const today = (new Date().getDay() + 6) % 7;
+    const set = new Set(weeklyMoveDays);
+    let count = 0;
+    // Walk back from today; if today isn't active yet, start from yesterday.
+    let cursor = set.has(today) ? today : today - 1;
+    while (cursor >= 0 && set.has(cursor)) {
+      count++;
+      cursor--;
+    }
+    return count;
+  }, [weeklyMoveDays]);
+
   const maxSessionDistanceKm = useMemo(() => {
     return sessions.reduce((mx, s) => Math.max(mx, s.distanceKm), 0);
   }, [sessions]);
@@ -203,6 +324,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       sendSafetyPing,
       missions,
       contributeKm,
+      chats,
+      sendChat,
+      weeklyMoveDays,
+      streakDays,
     }),
     [
       sessions,
@@ -216,6 +341,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       sendSafetyPing,
       missions,
       contributeKm,
+      chats,
+      sendChat,
+      weeklyMoveDays,
+      streakDays,
     ],
   );
 

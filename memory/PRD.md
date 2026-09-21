@@ -2,100 +2,117 @@
 
 ## Product
 
-Project Horizon is a premium, outdoor-focused mobile experience platform organized around 5 pillars:
-**Move, Explore, Stories, Connect, Safety**. Not a fitness tracker, not a social feed, not a map app —
-its own product identity in the outdoor experience category.
+Premium outdoor experience platform organized around 5 pillars: **Move, Explore, Stories, Connect, Safety**.
+Not a fitness tracker, not a social feed, not a map app — its own identity.
 
 ## Design language
 
-- **Personality**: Dark-First Utility with Luxe spacing. Premium, energetic, outdoor.
 - **Foundation**: `#0A0A0A` background, graphite `#1A1A1A` / `#242424` surfaces.
 - **Accent**: Electric lime `#C6FF3D` — CTAs, active states, progress, achievements only.
-- **Typography**: `SpaceGrotesk-Medium` display/metric, `Geist-Regular/Medium` body (local `.ttf` assets).
-- **Icons**: `@react-native-vector-icons/feather`.
+- **Typography**: `SpaceGrotesk-Medium` display/metric, `Geist-Regular/Medium` body (local `.ttf`).
+- **Icons**: `@react-native-vector-icons/feather` (no emoji, no `@expo/vector-icons`).
+- Tokens live in `src/theme.ts` — every screen consumes it.
 
 ## Navigation
 
-- 5 bottom tabs: Home, Move, Explore, Stories, Connect.
-- Stack routes: `/profile`, `/story-compose`, `/safety-contact`, `/mission/[id]`.
+- Bottom tabs: Home, Move, Explore, Stories, Connect.
+- Stack routes: `/profile`, `/story-compose`, `/safety-contact`, `/mission/[id]`, `/route-playback/[id]`.
 
-## Features
+## Feature surfaces
 
-### 1. Home
-Personal command center — greeting, dominant hero recommendation card, weekly summary metrics,
-recent-activity horizontal scroll, Explore & Stories teasers, squad row.
+### 1. Home — command center
+Greeting, hero recommendation card, **Streak card** (`home-streak-card`), **Tomorrow weather strip**
+(`home-weather-strip`), weekly summary metrics, recent-activity horizontal scroll, Explore & Stories
+teasers, squad row.
 
-### 2. Move — active session flow
-State machine `select → active → paused → summary`. Each activity has a photo card in a 2×2 grid,
-selected card gets a lime border. Active view shows huge `SpaceGrotesk` timer, three compact metric cards,
-and the **Safety Halo** (see #5). Every state transition triggers a haptic. Metrics are clearly labelled
-`DEMO MODE · SIMULATED METRICS` — no real GPS. Finishing a session commits it to the app store,
-which unlocks Explore territory and contributes to the Squad Mission.
+### 2. Move — active session
+State machine `select → active → paused → summary`. Distraction-free active view with huge duration
+timer, three compact metric cards, and the **Safety Halo**. Finishing commits to app state which
+drives Explore unlocks, mission progress, streak advancement, and story creation.
 
 ### 3. Territory Explorer (Explore)
-- **Native** (Expo Go / dev build): Interactive `react-native-maps` with a custom dark topographic
-  theme, route pins that are locked (grey lock icon) or unlocked (lime pin). Tap a pin or route card
-  to open a detail sheet with distance, elevation, difficulty, and a "Plan route" CTA when unlocked,
-  or a locked message when not.
-- **Web preview**: Atmospheric fallback image, same locked/unlocked route cards.
-- Routes unlock as the user's max completed session distance meets each route's `distanceKm`.
-- One-tap locate button requests `expo-location` foreground permission and pans the map.
+- Native: real `react-native-maps` with a custom dark topographic style, locked/unlocked pins.
+- Web preview: atmospheric fallback image.
+- Routes unlock when max completed session distance meets each route's `distanceKm`.
+- Route detail bottom sheet with elevation/difficulty and Plan CTA (when unlocked).
 
 ### 4. Adventure Journal (`/story-compose`)
-Photo-first story composer reached from the Move summary. Hero photo picker (native gallery via
-`expo-image-picker` with graceful fallback to a curated image gallery). Prefilled activity/distance/
-duration pills. Title, reflection, and 6 mood chips (Focused, Grateful, Peaceful, Wild, Humbled,
-Joyful). Publishing prepends the story to the Stories feed with a "You" attribution.
+Photo-first composer reached from Move summary. Real gallery picker on device
+(`expo-image-picker`), curated fallback on web. Title, reflection, 6 mood chips. Publish prepends
+story to the feed with "You" attribution.
 
-### 5. Safety Halo (in the active Move session)
-Custom hold-to-send button with an animated SVG progress ring and idle pulse (`react-native-reanimated`
-+ `react-native-svg`). Hold 1.6 s → the app records a mock ping to the user's chosen safety contact
-and shows an on-screen confirmation. Tap the person icon in the header to set/edit the contact
-(`/safety-contact`). Every surface repeats "demo mode — no real message sent" so users cannot mistake
-it for real emergency infrastructure.
+### 5. Safety Halo (in Move active session)
+Hold-to-send button, SVG progress ring + reanimated pulse, haptics, confirmation banner. First-run
+routes to `/safety-contact` for name + relation. Every surface is labelled "demo mode — no real
+message sent" so it can never be mistaken for emergency infrastructure.
 
 ### 6. Weekly Mission (Connect + `/mission/[id]`)
-- Connect gets a hero card showing this week's squad mission with progress bar and ends-in label.
-- Tap opens the mission detail: cover image, description, big lime progress metric, full leaderboard
-  with the current user highlighted in the brand-tertiary row.
-- When squad hits `progress >= 1`, the progress card is replaced with a **Celebration** panel:
-  pulsing lime award icon + "Mission complete" copy.
-- Every finished Move session contributes km to the user's row in the squad leaderboard.
+- Connect hero card: this week's mission with progress bar.
+- Detail: cover image, big progress metric, leaderboard with current user highlighted.
+- 100% → **Celebration** panel with pulsing lime award icon.
+- Every finished Move session contributes km to the user's leaderboard row.
 
-## Component library (`src/components/ui.tsx`)
+### 7. Squad Chat (Mission detail)
+Lightweight thread pinned to each mission. Three seeded teammate messages (text, photo, cheer)
+per mission demonstrate the surface. Composer contains:
+- Photo picker (`chat-photo-button`) — real gallery on device.
+- One-tap Cheer (`chat-cheer-button`) — sends "👏 Sending love from the trail" without keyboard.
+- Text input + Send (`chat-input`, `chat-send-button`) — Enter also sends.
+- Own messages right-aligned in lime; others left-aligned; cheers highlighted in brandTertiary.
+- `KeyboardAvoidingView` on iOS.
 
-`PrimaryButton`, `SecondaryButton`, `DangerButton`, `IconButton`, `SectionHeader`, `ScreenHeading`,
-`MetricCard`, `Chip`, `Avatar`, `Badge`, `ProgressBar`, `EmptyState`, `SafetyHalo`.
+### 8. Route Playback (`/route-playback/[id]`)
+Every story card gets a Play route action (`story-play-<id>`). Screen renders:
+- Full-bleed dark map card with atmospheric terrain, DEMO ROUTE badge.
+- Deterministic pseudo-random polyline (generated from story id/activity via `src/utils/route.ts`).
+- Ghost dotted trail + animated lime dotted route + animated runner dot along the path
+  (`react-native-svg` + `react-native-reanimated` UI-thread animation).
+- Elapsed time counter that syncs with playback progress.
+- Play/Reset controls with a progress bar underneath.
 
-All consume theme tokens from `src/theme.ts`; no color literals in screens.
+### 9. Streak Tracker (Home)
+- Fire-icon (zap) card showing consecutive-days streak count.
+- 7-day pill row (Mon..Sun) — active days lit in lime, today outlined even if not yet moved.
+- Copy explicitly says "Rest days welcome" so users are never punished for a rest day.
+- Streak advances automatically on every finished Move session.
 
-## State
+### 10. Weather Hero (Home)
+Horizontal scroll of "Tomorrow" chips: Sunrise, Sunset, High/Low, Wind. Section label + top-right
+condition summary ("Clear"). Mock data in `src/data/mock.ts` (`TOMORROW_WEATHER`).
 
-`src/state/store.tsx` — a lightweight React Context providing:
-`sessions[]`, `addSession`, `maxSessionDistanceKm` (drives Explore unlocks), `stories[]`, `addStory`,
-`safetyContact`, `setSafetyContact`, `lastSafetyPing`, `sendSafetyPing`, `missions[]`, `contributeKm`.
-In-memory for the demo — swap to persistence later without changing the shape.
+## State (`src/state/store.tsx`)
+
+Single React Context — no persistence yet (in-memory demo). Exposes:
+- `sessions`, `addSession`, `maxSessionDistanceKm`
+- `stories`, `addStory`
+- `safetyContact`, `setSafetyContact`, `lastSafetyPing`, `sendSafetyPing`
+- `missions`, `contributeKm`
+- `chats`, `sendChat`
+- `weeklyMoveDays`, `streakDays`
 
 ## Data
 
-Pure mock content in `src/data/mock.ts` (activities, routes, stories, squads, achievements, profile).
-Routes carry real lat/lng so the interactive map has meaningful pins.
+Mock content in `src/data/mock.ts`: activities, routes (with lat/lng for real map pins), stories,
+squads, achievements, profile, and `TOMORROW_WEATHER`.
+
+## Component library (`src/components/`)
+
+`ui.tsx` — buttons, MetricCard, Chip, Avatar, Badge, ProgressBar, EmptyState, SectionHeader,
+ScreenHeading. `safety-halo.tsx` — the hold-to-send safety button.
+
+## Tech
+
+Expo SDK 57, Expo Router v5, React Native 0.86. `react-native-maps`, `react-native-svg`,
+`react-native-reanimated`, `expo-location`, `expo-image-picker`, `expo-blur`, `expo-image`,
+`expo-haptics`, `expo-font`, `expo-linear-gradient`, `react-native-safe-area-context`.
+
+## Native-only features
+
+- Interactive Territory map — atmospheric fallback on web.
+- Native photo gallery — curated fallback on web.
+- Haptics — silent no-op on web.
 
 ## Out-of-scope / future
 
 Real backend, authentication, real messaging, wearables, AI recommendations. Architecture leaves
-clean boundaries so any of those can slot in without redesign.
-
-## Tech
-
-- Expo SDK 57, Expo Router v5, React Native 0.86.
-- `react-native-maps` (native only), `expo-location`, `expo-image-picker`.
-- `react-native-reanimated`, `react-native-svg` for Safety Halo.
-- `expo-blur` glass tab bar on native, solid on web.
-- `expo-image`, `expo-linear-gradient`, `expo-haptics`, `expo-font`.
-- `react-native-safe-area-context` on every screen.
-
-## Native-only features
-
-- **Interactive Territory map** — falls back to an atmospheric image on the web preview. Test on a real device via Expo Go / a dev build.
-- **Photo gallery picking** for Adventure Journal — works on device only; the web preview cycles through curated images.
+clean boundaries so any of those can slot in.

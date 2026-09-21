@@ -243,3 +243,15 @@ export const PROFILE = {
   activitiesCount: 187,
   peaksCount: 12,
 };
+
+// Tomorrow's forecast (mock, clearly demo).
+export const TOMORROW_WEATHER = {
+  sunrise: "6:12 AM",
+  sunset: "8:24 PM",
+  tempHigh: 18,
+  tempLow: 9,
+  wind: "N 12 km/h",
+  condition: "Clear",
+  conditionIcon: "sun",
+};
+

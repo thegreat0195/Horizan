@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import FeatherIcon from "@react-native-vector-icons/feather";
@@ -13,6 +13,7 @@ import {
   RECENT_ACTIVITIES,
   STORIES,
   SQUADS,
+  TOMORROW_WEATHER,
 } from "@/src/data/mock";
 import {
   Avatar,
@@ -22,6 +23,7 @@ import {
   MetricCard,
   SectionHeader,
 } from "@/src/components/ui";
+import { useAppState } from "@/src/state/store";
 
 const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.surface },
@@ -164,6 +166,10 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = 68 + insets.bottom;
   const router = useRouter();
+  const { weeklyMoveDays, streakDays } = useAppState();
+  const activeDaySet = new Set(weeklyMoveDays);
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
   return (
     <View style={styles.root}>
@@ -219,6 +225,166 @@ export default function HomeScreen() {
             </View>
           </View>
         </Pressable>
+
+        {/* Streak card */}
+        <View
+          style={{
+            marginHorizontal: spacing.lg,
+            marginTop: spacing.lg,
+            padding: spacing.lg,
+            backgroundColor: colors.surfaceSecondary,
+            borderRadius: radius.md,
+          }}
+          testID="home-streak-card"
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: colors.brandTertiary,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FeatherIcon name="zap" size={20} color={colors.brandPrimary} />
+              </View>
+              <View>
+                <Text
+                  style={{
+                    color: colors.onSurface,
+                    fontFamily: fonts.display,
+                    fontSize: fontSize.xxl,
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  {streakDays} day{streakDays === 1 ? "" : "s"}
+                </Text>
+                <Text
+                  style={{
+                    color: colors.muted,
+                    fontFamily: fonts.text,
+                    fontSize: fontSize.sm,
+                  }}
+                >
+                  {streakDays > 0 ? "current streak" : "start your streak today"}
+                </Text>
+              </View>
+            </View>
+            <Text
+              style={{
+                color: colors.muted,
+                fontFamily: fonts.textMedium,
+                fontSize: fontSize.xs,
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+              }}
+            >
+              Rest days welcome
+            </Text>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: spacing.lg,
+              gap: spacing.xs,
+            }}
+          >
+            {dayLabels.map((d, i) => {
+              const active = activeDaySet.has(i);
+              const isToday = i === todayIdx;
+              return (
+                <View
+                  key={`day-${i}`}
+                  style={{ alignItems: "center", flex: 1 }}
+                  testID={`streak-day-${i}`}
+                >
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: active ? colors.brandPrimary : colors.surfaceTertiary,
+                      borderWidth: isToday && !active ? 1.5 : 0,
+                      borderColor: colors.brandPrimary,
+                    }}
+                  >
+                    {active ? (
+                      <FeatherIcon name="zap" size={14} color={colors.onBrandPrimary} />
+                    ) : null}
+                  </View>
+                  <Text
+                    style={{
+                      color: isToday ? colors.brandPrimary : colors.muted,
+                      fontFamily: fonts.textMedium,
+                      fontSize: fontSize.xs,
+                      marginTop: 6,
+                    }}
+                  >
+                    {d}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Tomorrow weather chips */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: spacing.lg,
+            marginTop: spacing.lg,
+          }}
+        >
+          <Text
+            style={{
+              color: colors.muted,
+              fontFamily: fonts.textMedium,
+              fontSize: fontSize.xs,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+            }}
+          >
+            Tomorrow · plan ahead
+          </Text>
+          <Text style={{ color: colors.brandPrimary, fontFamily: fonts.textMedium, fontSize: fontSize.sm }}>
+            {TOMORROW_WEATHER.condition}
+          </Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: spacing.lg,
+            gap: spacing.sm,
+            paddingTop: spacing.sm,
+          }}
+          testID="home-weather-strip"
+        >
+          <WeatherChip icon="sunrise" label={TOMORROW_WEATHER.sunrise} sub="Sunrise" />
+          <WeatherChip icon="sunset" label={TOMORROW_WEATHER.sunset} sub="Sunset" />
+          <WeatherChip
+            icon="thermometer"
+            label={`${TOMORROW_WEATHER.tempHigh}° / ${TOMORROW_WEATHER.tempLow}°`}
+            sub="High / Low"
+          />
+          <WeatherChip icon="wind" label={TOMORROW_WEATHER.wind} sub="Wind" />
+        </ScrollView>
 
         {/* Weekly summary metrics */}
         <View
@@ -346,6 +512,53 @@ export default function HomeScreen() {
           <FeatherIcon name="chevron-right" size={20} color={colors.muted} />
         </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function WeatherChip({ icon, label, sub }: { icon: string; label: string; sub: string }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: colors.surfaceSecondary,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+      }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: colors.brandTertiary,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <FeatherIcon name={icon as any} size={14} color={colors.brandPrimary} />
+      </View>
+      <View>
+        <Text style={{ color: colors.onSurface, fontFamily: fonts.textMedium, fontSize: fontSize.sm }}>
+          {label}
+        </Text>
+        <Text
+          style={{
+            color: colors.muted,
+            fontFamily: fonts.text,
+            fontSize: fontSize.xs,
+            letterSpacing: 0.8,
+            textTransform: "uppercase",
+            marginTop: 2,
+          }}
+        >
+          {sub}
+        </Text>
+      </View>
     </View>
   );
 }

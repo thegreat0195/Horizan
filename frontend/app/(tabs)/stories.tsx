@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import FeatherIcon from "@react-native-vector-icons/feather";
@@ -192,13 +192,19 @@ export default function StoriesScreen() {
                   </Text>
                 ) : null}
                 <View style={styles.actionsRow}>
+                  <Pressable
+                    style={styles.actionItem}
+                    onPress={() =>
+                      router.push({ pathname: "/route-playback/[id]", params: { id: s.id } })
+                    }
+                    testID={`story-play-${s.id}`}
+                  >
+                    <FeatherIcon name="play-circle" size={16} color={colors.brandPrimary} />
+                    <Text style={styles.actionText}>Play route</Text>
+                  </Pressable>
                   <View style={styles.actionItem}>
                     <FeatherIcon name="award" size={16} color={colors.brandPrimary} />
                     <Text style={styles.actionText}>Applaud</Text>
-                  </View>
-                  <View style={styles.actionItem}>
-                    <FeatherIcon name="message-circle" size={16} color="#FFFFFF" />
-                    <Text style={styles.actionText}>Reflect</Text>
                   </View>
                   <View style={styles.actionItem}>
                     <FeatherIcon name="share-2" size={16} color="#FFFFFF" />

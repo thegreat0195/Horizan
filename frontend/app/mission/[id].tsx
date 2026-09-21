@@ -1,5 +1,14 @@
-import React, { useEffect, useMemo } from "react";
-import { ScrollView, Text, View, StyleSheet } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+} from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import FeatherIcon from "@react-native-vector-icons/feather";
@@ -12,11 +21,13 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
 
 import { fonts, fontSize, makeStyles, radius, spacing, useTheme } from "@/src/theme";
 import { SQUADS } from "@/src/data/mock";
 import { Avatar, IconButton, PrimaryButton, ProgressBar } from "@/src/components/ui";
-import { useAppState } from "@/src/state/store";
+import { useAppState, ChatMessage } from "@/src/state/store";
 
 const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.surface },
@@ -151,7 +162,8 @@ export default function MissionDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id: string }>();
-  const { missions } = useAppState();
+  const { missions, chats, sendChat } = useAppState();
+  const [draft, setDraft] = useState("");
 
   const mission = missions.find((m) => m.id === params.id) ?? missions[0];
   const squad = SQUADS.find((s) => s.id === mission.squadId) ?? SQUADS[0];
@@ -254,7 +266,28 @@ export default function MissionDetailScreen() {
           );
         })}
 
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xxl }}>
+        {/* Squad Chat */}
+        <Text style={styles.section}>Squad chat</Text>
+        <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
+          {(chats[mission.id] ?? []).length === 0 ? (
+            <Text
+              style={{
+                color: colors.muted,
+                fontFamily: fonts.text,
+                fontSize: fontSize.sm,
+                lineHeight: 20,
+              }}
+            >
+              No messages yet. Send a cheer to break the ice.
+            </Text>
+          ) : (
+            (chats[mission.id] ?? []).map((m) => (
+              <ChatBubble key={m.id} msg={m} />
+            ))
+          )}
+        </View>
+
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
           <PrimaryButton
             label="Log a session"
             icon="play"
@@ -264,6 +297,240 @@ export default function MissionDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Composer */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
+            paddingBottom: insets.bottom + spacing.md,
+            backgroundColor: colors.surface,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: colors.divider,
+          }}
+        >
+          <Pressable
+            onPress={async () => {
+              try {
+                const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (perm.status !== "granted") return;
+                const res = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  quality: 0.7,
+                });
+                if (!res.canceled && res.assets && res.assets[0]) {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                  sendChat(mission.id, {
+                    kind: "photo",
+                    body: "Photo",
+                    photoUri: res.assets[0].uri,
+                  });
+                }
+              } catch {}
+            }}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: colors.surfaceSecondary,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            testID="chat-photo-button"
+          >
+            <FeatherIcon name="image" size={20} color={colors.onSurface} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              sendChat(mission.id, { kind: "cheer", body: "👏 Sending love from the trail" });
+            }}
+            style={{
+              height: 44,
+              paddingHorizontal: spacing.md,
+              borderRadius: 22,
+              backgroundColor: colors.brandTertiary,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 6,
+            }}
+            testID="chat-cheer-button"
+          >
+            <FeatherIcon name="award" size={16} color={colors.brandPrimary} />
+            <Text
+              style={{
+                color: colors.brandPrimary,
+                fontFamily: fonts.textMedium,
+                fontSize: fontSize.sm,
+              }}
+            >
+              Cheer
+            </Text>
+          </Pressable>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="Message the squad"
+            placeholderTextColor={colors.muted}
+            style={{
+              flex: 1,
+              height: 44,
+              paddingHorizontal: spacing.lg,
+              borderRadius: 22,
+              backgroundColor: colors.surfaceSecondary,
+              color: colors.onSurface,
+              fontFamily: fonts.text,
+              fontSize: fontSize.base,
+            }}
+            testID="chat-input"
+            returnKeyType="send"
+            onSubmitEditing={() => {
+              if (!draft.trim()) return;
+              sendChat(mission.id, { kind: "text", body: draft.trim() });
+              setDraft("");
+            }}
+          />
+          <Pressable
+            onPress={() => {
+              if (!draft.trim()) return;
+              Haptics.selectionAsync().catch(() => {});
+              sendChat(mission.id, { kind: "text", body: draft.trim() });
+              setDraft("");
+            }}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: draft.trim() ? colors.brandPrimary : colors.surfaceSecondary,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            testID="chat-send-button"
+          >
+            <FeatherIcon
+              name="arrow-up"
+              size={20}
+              color={draft.trim() ? colors.onBrandPrimary : colors.muted}
+            />
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
+
+function ChatBubble({ msg }: { msg: ChatMessage }) {
+  const { colors } = useTheme();
+  const isMine = !!msg.mine;
+  const time = new Date(msg.createdAt);
+  const timeStr = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return (
+    <View
+      style={{
+        flexDirection: isMine ? "row-reverse" : "row",
+        alignItems: "flex-end",
+        gap: spacing.sm,
+      }}
+      testID={`chat-msg-${msg.id}`}
+    >
+      {!isMine ? <Avatar uri={msg.avatar} size={32} /> : null}
+      <View
+        style={{
+          maxWidth: "78%",
+          gap: 4,
+          alignItems: isMine ? "flex-end" : "flex-start",
+        }}
+      >
+        {!isMine ? (
+          <Text
+            style={{
+              color: colors.muted,
+              fontFamily: fonts.textMedium,
+              fontSize: fontSize.xs,
+              paddingHorizontal: 2,
+            }}
+          >
+            {msg.author} · {timeStr}
+          </Text>
+        ) : null}
+        {msg.kind === "photo" && msg.photoUri ? (
+          <View
+            style={{
+              borderRadius: radius.md,
+              overflow: "hidden",
+              backgroundColor: colors.surfaceSecondary,
+            }}
+          >
+            <Image
+              source={{ uri: msg.photoUri }}
+              style={{ width: 220, height: 140 }}
+              contentFit="cover"
+            />
+            {msg.body ? (
+              <Text
+                style={{
+                  color: colors.onSurface,
+                  fontFamily: fonts.text,
+                  fontSize: fontSize.sm,
+                  padding: spacing.sm,
+                }}
+              >
+                {msg.body}
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <View
+            style={{
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.sm,
+              borderRadius: radius.md,
+              backgroundColor:
+                msg.kind === "cheer"
+                  ? colors.brandTertiary
+                  : isMine
+                    ? colors.brandPrimary
+                    : colors.surfaceSecondary,
+            }}
+          >
+            <Text
+              style={{
+                color:
+                  msg.kind === "cheer"
+                    ? colors.brandPrimary
+                    : isMine
+                      ? colors.onBrandPrimary
+                      : colors.onSurface,
+                fontFamily: fonts.text,
+                fontSize: fontSize.base,
+                lineHeight: 20,
+              }}
+            >
+              {msg.body}
+            </Text>
+          </View>
+        )}
+        {isMine ? (
+          <Text
+            style={{
+              color: colors.muted,
+              fontFamily: fonts.text,
+              fontSize: fontSize.xs,
+              paddingHorizontal: 2,
+            }}
+          >
+            {timeStr}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
